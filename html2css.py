@@ -12,14 +12,14 @@ import string
 def html2css(htmlfile, cssfile, outputfile):
   
   new_css_table = []
+  css_dict = {}
   
   f = open(htmlfile, 'r')
   file_contents = f.read()
-  
-  
-  # this gives us a table of existing css selectors and rules to look up if something already exists in the css file so we don't clobber existing rules
-  
-  css_dict = build_css_dict(cssfile,outputfile) 
+        
+    # this gives us a table of existing css selectors and rules to look up if something already exists in the css file so we don't clobber existing rules
+  if cssfile:   
+    css_dict = build_css_dict(cssfile,outputfile) 
     
   # get all the ids from the html file, there's probably a better way to get all the ids and classes at once, but we're just doing two passes,
   # change this if performance becomes an issue
@@ -54,10 +54,11 @@ def html2css(htmlfile, cssfile, outputfile):
     # we just write the original contents to another file so we don't accidentally clobber the original file
     
     outputf = open(outputfile, 'w')
-    f = open(cssfile, 'r')
-    orig_contents = f.read()    
-    
-    outputf.write(orig_contents)
+    if cssfile:
+      f = open(cssfile, 'r')
+      orig_contents = f.read()    
+      
+      outputf.write(orig_contents)
 
     for t in new_css_table:
       s = t[0] + t[1] + "\n"
@@ -115,12 +116,31 @@ def main():
   ##htmlfile = args[]
 
   if not args:
-    print 'usage: --htmlfile file --cssfile file --outputfile file'
+    print 'usage: [--cssfile file] htmlfile outputfile '
+    sys.exit(1)
+    
+  # we could check that the arguments exist, and that we're not clobbering an existing css file
+  # but since it's a script we're not going to use that often we're going to be lazy
+  # also we could just omit --htmlfile --cssfile, etc, but it helps us keep the order of the arguments
+  # straight to type it out explicitly. 
+
+  cssfile = ''
+  if args[0] == '--cssfile':
+    cssfile = args[1]
+    del args[0:2]
+    
+  if len(args) == 0:
+    print "error: you must specify an html file and an output file"
     sys.exit(1)
 
-  htmlfile = args[1]
-  cssfile = args[3]
-  outputfile = args[5]
+  htmlfile = args[0]
+  del args[0]
+  
+  if len(args) == 0:
+    print "error: you must specify an output file"
+    sys.exit(1)
+    
+  outputfile = args[0]
 
   html2css(htmlfile,cssfile,outputfile)
 
